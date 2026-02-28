@@ -90,8 +90,8 @@ export class BinanceWebSocket {
       }
     }
 
-    this.ws.onerror = (err) => {
-      console.error('[WS] Error', err)
+    this.ws.onerror = () => {
+      console.warn('[WS] Connection error, will reconnect...')
     }
   }
 
