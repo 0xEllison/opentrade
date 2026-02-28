@@ -143,12 +143,12 @@ export default function TradingPage() {
 
   // Connect WebSocket for given mode
   const connectWS = useCallback((mode: TradingMode) => {
-    // Disconnect existing
     if (wsRef.current) {
       wsRef.current.disconnect()
       wsRef.current = null
     }
 
+    const interval = useTradingStore.getState().selectedInterval
     const ws = new BinanceWebSocket(
       mode,
       SYMBOLS,
@@ -168,7 +168,8 @@ export default function TradingPage() {
       (symbol: TradingSymbol, price: number) => {
         store.updateMarkPrice(symbol, price)
         store.tickEngine(symbol, price)
-      }
+      },
+      interval
     )
 
     ws.connect()
@@ -195,11 +196,12 @@ export default function TradingPage() {
     connectWS(tradingMode)
   }, [tradingMode, loadKlines, connectWS])
 
-  // Reload klines when interval changes
+  // Reload klines and reconnect WS when interval changes
   useEffect(() => {
     const mode = useTradingStore.getState().tradingMode
     loadKlines(mode, selectedInterval)
-  }, [selectedInterval, loadKlines])
+    connectWS(mode)
+  }, [selectedInterval, loadKlines, connectWS])
 
   // Fetch strategy report periodically
   const fetchReport = useCallback(async () => {

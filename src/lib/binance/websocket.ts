@@ -10,6 +10,7 @@ export class BinanceWebSocket {
   private ws: WebSocket | null = null
   private mode: TradingMode
   private symbols: TradingSymbol[]
+  private interval: string
   private onKline: KlineHandler
   private onPrice: PriceHandler
   private reconnectTimer: ReturnType<typeof setTimeout> | null = null
@@ -19,12 +20,14 @@ export class BinanceWebSocket {
     mode: TradingMode,
     symbols: TradingSymbol[],
     onKline: KlineHandler,
-    onPrice: PriceHandler
+    onPrice: PriceHandler,
+    interval = '1m'
   ) {
     this.mode = mode
     this.symbols = symbols
     this.onKline = onKline
     this.onPrice = onPrice
+    this.interval = interval
   }
 
   connect() {
@@ -33,8 +36,8 @@ export class BinanceWebSocket {
     const streams = this.symbols.flatMap((s) => {
       const sym = s.toLowerCase()
       return this.mode === 'futures'
-        ? [`${sym}@kline_1m`, `${sym}@markPrice@1s`]
-        : [`${sym}@kline_1m`, `${sym}@miniTicker`]
+        ? [`${sym}@kline_${this.interval}`, `${sym}@markPrice@1s`]
+        : [`${sym}@kline_${this.interval}`, `${sym}@miniTicker`]
     })
 
     const url = `${wsBase}?streams=${streams.join('/')}`
@@ -52,7 +55,7 @@ export class BinanceWebSocket {
         const stream: string = msg.stream
         const data = msg.data
 
-        if (stream.includes('@kline_1m')) {
+        if (stream.includes('@kline_')) {
           const symbol = data.s as TradingSymbol
           const k = data.k
           const candle: Candle = {
