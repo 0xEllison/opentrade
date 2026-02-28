@@ -106,6 +106,7 @@ import { PnlChart } from '@/components/chart/PnlChart'
 import { SymbolSelector } from '@/components/trading/SymbolSelector'
 import { SignalPanel } from '@/components/trading/SignalPanel'
 import { IntelCenter } from '@/components/trading/IntelCenter'
+import { MobileLayout } from '@/components/MobileLayout'
 import { PositionsList } from '@/components/trading/PositionsList'
 import { OrdersList } from '@/components/trading/OrdersList'
 import { TradeHistory } from '@/components/trading/TradeHistory'
@@ -409,21 +410,21 @@ export default function TradingPage() {
     <div className="flex flex-col h-screen overflow-hidden bg-background text-foreground">
       {/* Header */}
       <header className="flex items-center justify-between px-3 py-1.5 border-b border-border shrink-0">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           <h1 className="text-base font-bold text-blue-400">OpenTrade</h1>
-          <SymbolSelector />
+          <div className="hidden md:block"><SymbolSelector /></div>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           <div className="text-xs">
             <span className="text-slate-400">余额 </span>
             <span className="font-mono font-semibold">${account.balance.toFixed(2)}</span>
-            <span className="text-slate-400 ml-2">权益 </span>
-            <span className={`font-mono font-semibold ${account.equity >= account.totalDeposited - account.totalWithdrawn ? 'text-green-400' : 'text-red-400'}`}>
+            <span className="hidden sm:inline text-slate-400 ml-2">权益 </span>
+            <span className={`hidden sm:inline font-mono font-semibold ${account.equity >= account.totalDeposited - account.totalWithdrawn ? 'text-green-400' : 'text-red-400'}`}>
               ${account.equity.toFixed(2)}
             </span>
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="text-xs text-slate-400">AI自动</span>
+            <span className="text-xs text-slate-400 hidden sm:inline">AI自动</span>
             <Switch checked={autoTradeEnabled} onCheckedChange={setAutoTradeEnabled} />
             <Badge variant={autoTradeEnabled ? 'default' : 'secondary'} className="text-xs px-1.5 py-0">
               {autoTradeEnabled ? 'ON' : 'OFF'}
@@ -432,25 +433,25 @@ export default function TradingPage() {
         </div>
       </header>
 
-      {/* Main: Left (flex-1) + Right (signals) */}
-      <div className="flex flex-1 overflow-hidden min-h-0">
+      {/* Mobile: symbol selector row */}
+      <div className="md:hidden px-2 py-1.5 border-b border-border shrink-0 overflow-x-auto">
+        <SymbolSelector />
+      </div>
 
+      {/* ── Desktop layout ── */}
+      <div className="hidden md:flex flex-1 overflow-hidden min-h-0">
         {/* Left area */}
         <div className="flex-1 flex flex-col min-w-0 overflow-hidden border-r border-border">
-
-          {/* Top 60%: Chart (left 50%) + Intel panel (right 50%) */}
+          {/* Top 60%: Chart + Intel */}
           <div className="flex border-b border-border" style={{ height: '60%' }}>
-            {/* K-line */}
             <div className="w-1/2 border-r border-border overflow-hidden">
               <CandlestickChart />
             </div>
-            {/* Intel: news / whales / market */}
             <div className="w-1/2 overflow-hidden">
               <IntelCenter onRefreshReport={fetchReport} onRefreshWhales={fetchWhaleIntel} onRefreshNews={fetchNews} />
             </div>
           </div>
-
-          {/* Bottom 40%: Positions tabs */}
+          {/* Bottom 40%: Tabs */}
           <div className="flex flex-col overflow-hidden" style={{ height: '40%' }}>
             <Tabs defaultValue="positions" className="flex flex-col h-full">
               <TabsList className="shrink-0 w-full justify-start h-7 gap-0 p-0.5 rounded-none border-b border-border bg-transparent">
@@ -466,38 +467,32 @@ export default function TradingPage() {
                 <TabsTrigger value="capital" className="text-xs h-6 px-3 rounded">资金</TabsTrigger>
               </TabsList>
               <div className="flex-1 overflow-y-auto">
-                <TabsContent value="positions" className="mt-0 h-full">
-                  <PositionsList />
-                </TabsContent>
-                <TabsContent value="orders" className="mt-0">
-                  <OrdersList />
-                </TabsContent>
-                <TabsContent value="history" className="mt-0">
-                  <TradeHistory />
-                </TabsContent>
-                <TabsContent value="pnl" className="mt-0 h-full">
-                  <PnlChart />
-                </TabsContent>
-                <TabsContent value="strategy" className="mt-0">
-                  <StrategyReportPanel onRefresh={fetchReport} />
-                </TabsContent>
-                <TabsContent value="capital" className="mt-0">
-                  <CapitalManager />
-                </TabsContent>
+                <TabsContent value="positions" className="mt-0 h-full"><PositionsList /></TabsContent>
+                <TabsContent value="orders" className="mt-0"><OrdersList /></TabsContent>
+                <TabsContent value="history" className="mt-0"><TradeHistory /></TabsContent>
+                <TabsContent value="pnl" className="mt-0 h-full"><PnlChart /></TabsContent>
+                <TabsContent value="strategy" className="mt-0"><StrategyReportPanel onRefresh={fetchReport} /></TabsContent>
+                <TabsContent value="capital" className="mt-0"><CapitalManager /></TabsContent>
               </div>
             </Tabs>
           </div>
-
         </div>
-
         {/* Right: Signal panel */}
         <div className="w-72 shrink-0 overflow-hidden">
           <div className="h-full overflow-hidden p-3">
             <SignalPanel />
           </div>
         </div>
-
       </div>
+
+      {/* ── Mobile layout ── */}
+      <MobileLayout
+        activeCount={activeCount}
+        pendingOrderCount={pendingOrderCount}
+        fetchReport={fetchReport}
+        fetchWhaleIntel={fetchWhaleIntel}
+        fetchNews={fetchNews}
+      />
     </div>
   )
 }
